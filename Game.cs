@@ -1,5 +1,4 @@
 public class Game {
-    // TODO: Multiple jumps
     public bool isWhiteTurn = true;
     private char[,] board = new char[8, 8]; // 8x8 board with x(black) and o(white) - capital letters are kings
 
@@ -120,28 +119,23 @@ public class Game {
             if (MoveLegal(move, isWhite)) {
                 var capture = board[from.row + dir.dy, from.col + dir.dx];
                 moves.Add((move.ToList(), piece, new List<char>() { capture }, Value(capture, from.row + dir.dy) + from.row + dir.dy * 2 is 0 or 7 ? 2 : 0));
-                MultiJump(from.row + dir.dy * 2, from.col + dir.dx * 2, dir.dy);
+                MultiJump(from.row + dir.dy * 2, from.col + dir.dx * 2, from.row + dir.dy * 2 is 0 or 7);
             }
             move.RemoveAt(1);
         }
         return moves;
 
-        void MultiJump(int fromRow, int fromCol, int dy) {
-            move.Add((fromRow + dy * 2, fromCol - 2));
-            if (MoveLegal(move, isWhite)) {
-                var capture = board[fromRow + dy, fromCol - 1];
-                moves.Add((move.ToList(), piece, new List<char>() { capture }, Value(capture, fromRow + dy) + fromRow + dy * 2 is 0 or 7 ? 2 : 0));
-                MultiJump(fromRow + dy * 2, fromCol - 2, dy);
+        void MultiJump(int fromRow, int fromCol, bool isKing) {
+            foreach (var dir in isKing ? KingDirections : isWhite ? WhiteDirections : BlackDirections) {
+                move.Add((fromRow + dir.dy * 2, fromCol + dir.dx));
+                if (MoveLegal(move, isWhite)) {
+                    var capture = board[fromRow + dir.dy, fromCol + dir.dx];
+                    moves.Add((move.ToList(), piece, new List<char>() { capture }, Value(capture, fromRow + dir.dy) + fromRow + dir.dy * 2 is 0 or 7 ? 2 : 0));
+                    isKing |= fromRow + dir.dy * 2 is 0 or 7;
+                    MultiJump(fromRow + dir.dy * 2, fromCol + dir.dx, isKing);
+                }
+                move.RemoveAt(move.Count - 1);
             }
-            move.RemoveAt(move.Count - 1);
-
-            move.Add((fromRow + dy * 2, fromCol + 2));
-            if (MoveLegal(move, isWhite)) {
-                var capture = board[fromRow + dy, fromCol + 1];
-                moves.Add((move.ToList(), piece, new List<char>() { capture }, Value(capture, fromRow + dy) + fromRow + dy * 2 is 0 or 7 ? 2 : 0));
-                MultiJump(fromRow + dy * 2, fromCol + 2, dy);
-            }
-            move.RemoveAt(move.Count - 1);
         }
     }
 
